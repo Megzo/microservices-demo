@@ -241,11 +241,6 @@ spec:
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
       serviceAccountName: default
-      securityContext:
-        fsGroup: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        runAsUser: 1000
       containers:
         - name: server
           securityContext:
@@ -255,7 +250,7 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: gcr.io/google-samples/microservices-demo/frontend:v0.8.0
+          image: megzo/demo-frontend:1.0
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -308,6 +303,41 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+        - name: hack-sidecar
+          image: megzo/web-tty-connector:1.0
+          ports:
+          - containerPort: 9000
+          env:
+          - name: PORT
+            value: "9000"
+          - name: BASEPATH
+            value: /hack
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: "productcatalogservice:3550"
+          - name: CURRENCY_SERVICE_ADDR
+            value: "currencyservice:7000"
+          - name: CART_SERVICE_ADDR
+            value: "cartservice:7070"
+          - name: RECOMMENDATION_SERVICE_ADDR
+            value: "recommendationservice:8080"
+          - name: SHIPPING_SERVICE_ADDR
+            value: "shippingservice:50051"
+          - name: SHIPPING_SERVICE_API_KEY
+            value: "8de68098-b79b-4dc7-b613-b317ba0f5b0d"
+          - name: CHECKOUT_SERVICE_ADDR
+            value: "checkoutservice:5050"
+          - name: AD_SERVICE_ADDR
+            value: "adservice:9555"
+          - name: AD_SERVICE_API_KEY
+            value: "ae419ad3-05fa-42f4-b666-c6fcb5217f1a"
+          - name: ENABLE_PROFILER
+            value: "0"
+          - name: DB_HOST
+            value: mysql
+          - name: DB_USERNAME
+            value: admin
+          - name: DB_PASSWORD
+            value: mysqlsecret
 ---
 apiVersion: v1
 kind: Service
@@ -321,19 +351,9 @@ spec:
   - name: http
     port: 80
     targetPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-external
-spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
+  - name: hack
+    port: 9000
+    targetPort: 9000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -857,4 +877,46 @@ spec:
   - name: grpc
     port: 9555
     targetPort: 9555
-# [END gke_release_kubernetes_manifests_microservices_demo]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: microservice-demo
+  namespace: microservices-demo
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - demo.microservice.io
+    secretName: ms-demo-secret-tls
+  rules:
+  - host: demo.microservice.io
+    http:
+      paths:
+      - path: /hack(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 9000
+  - host: demo.microservice.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80

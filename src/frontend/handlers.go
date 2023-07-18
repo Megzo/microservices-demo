@@ -118,6 +118,7 @@ func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 		"is_cymbal_brand":   isCymbalBrand,
 		"deploymentDetails": deploymentDetailsMap,
 		"frontendMessage":   frontendMessage,
+		"hostname":          os.Getenv("HOSTNAME"),
 	}); err != nil {
 		log.Error(err)
 	}
@@ -204,6 +205,7 @@ func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request)
 		"is_cymbal_brand":   isCymbalBrand,
 		"deploymentDetails": deploymentDetailsMap,
 		"frontendMessage":   frontendMessage,
+		"hostname":          os.Getenv("HOSTNAME"),
 	}); err != nil {
 		log.Println(err)
 	}
@@ -317,6 +319,7 @@ func (fe *frontendServer) viewCartHandler(w http.ResponseWriter, r *http.Request
 		"is_cymbal_brand":   isCymbalBrand,
 		"deploymentDetails": deploymentDetailsMap,
 		"frontendMessage":   frontendMessage,
+		"hostname":          os.Getenv("HOSTNAME"),
 	}); err != nil {
 		log.Println(err)
 	}
@@ -391,6 +394,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		"is_cymbal_brand":   isCymbalBrand,
 		"deploymentDetails": deploymentDetailsMap,
 		"frontendMessage":   frontendMessage,
+		"hostname":          os.Getenv("HOSTNAME"),
 	}); err != nil {
 		log.Println(err)
 	}
@@ -455,6 +459,7 @@ func renderHTTPError(log logrus.FieldLogger, r *http.Request, w http.ResponseWri
 		"is_cymbal_brand":   isCymbalBrand,
 		"deploymentDetails": deploymentDetailsMap,
 		"frontendMessage":   frontendMessage,
+		"hostname":          os.Getenv("HOSTNAME"),
 	}); templateErr != nil {
 		log.Println(templateErr)
 	}

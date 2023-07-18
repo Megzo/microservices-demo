@@ -39,11 +39,11 @@
                         <b>Pod: </b>{{ index .deploymentDetails "HOSTNAME" }}
                         {{ end }}
                     {{ else }}
-                    Deployment details are still loading.
-                    Try refreshing this page.
+                    <b>Pod: </b>{{ $.hostname }}
                     {{ end }}
                 </small>
             </p>
+            <p class="footer-text">Hack Me: <a href="/hack"><img src="/static/icons/Terminal.svg" alt="" class="top-left-logo"></img></a></p>
         </div>
     </div>
 </footer>
